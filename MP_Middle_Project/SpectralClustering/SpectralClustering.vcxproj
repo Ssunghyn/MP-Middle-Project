@@ -143,6 +143,7 @@
     <ClCompile Include="AffinityMatrix.cpp" />
     <ClCompile Include="DataProcessing.cpp" />
     <ClCompile Include="DS_timer.cpp" />
+    <ClCompile Include="LaplacianMatrix.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +151,7 @@
     <ClInclude Include="DataProcessing.h" />
     <ClInclude Include="DS_definitions.h" />
     <ClInclude Include="DS_timer.h" />
+    <ClInclude Include="LaplacianMatrix.h" />
     <ClInclude Include="SpectralClustring.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

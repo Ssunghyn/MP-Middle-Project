@@ -27,6 +27,9 @@
     <ClCompile Include="AffinityMatrix.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LaplacianMatrix.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AffinityMatrix.h">
@@ -42,6 +45,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DataProcessing.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LaplacianMatrix.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
