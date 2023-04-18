@@ -7,39 +7,38 @@
 
 #define THREADS (8)
 
-void generateLaplacianMatrix(std::vector<std::vector<double>> *affinityMatrix) {
-	std::vector<std::vector<double>> d(affinityMatrix->size());
-	for (int i = 0; i < (affinityMatrix->size()); i++)
+void generateLaplacianMatrix(double* affinityMatrix[], int n) {
+	for (int i = 0; i < n; i++)
 	{
 		double sum = 0;
-		for (int j = 0; j < (affinityMatrix->size()); j++)
+		for (int j = 0; j < n; j++)
 		{
-			sum += (*affinityMatrix)[i][j];
-			if (i != j) (*affinityMatrix)[i][j] = -(*affinityMatrix)[i][j];
+			if (i != j)
+			{
+				sum += (affinityMatrix)[i][j];
+				(affinityMatrix)[i][j] = -(affinityMatrix)[i][j];
+			}
 		}
-		(*affinityMatrix)[i][i] = sum - (*affinityMatrix)[i][i];
+		(affinityMatrix)[i][i] = sum;
 	}
 }
 
-void generateLaplacianMatrixParallel(std::vector<std::vector<double>>* affinityMatrix) {
-	std::vector<std::vector<double>> d(affinityMatrix->size());
-	for (int i = 0; i < (affinityMatrix->size()); i++)
+void generateLaplacianMatrixParallel2(double* affinityMatrix[], int n) {
+	#pragma omp parallel num_threads(THREADS) 
 	{
-		double sum = 0;
-		#pragma omp parallel num_threads(THREADS)
+		#pragma omp for
+		for (int i = 0; i < n; i++)
 		{
-			#pragma omp for nowait
-			for (int j = 0; j < (affinityMatrix->size()); j++)
+			double sum = 0;
+			for (int j = 0; j < n; j++)
 			{
-				if (i != j) (*affinityMatrix)[i][j] = -(*affinityMatrix)[i][j];
+				if (i != j)
+				{
+					sum += (affinityMatrix)[i][j];
+					(affinityMatrix)[i][j] = -(affinityMatrix)[i][j];
+				}
 			}
-
-			#pragma omp for reduction(+:sum)
-			for (int j = 0; j < (affinityMatrix->size()); j++)
-			{
-				sum += (*affinityMatrix)[i][j];
-			}
-			(*affinityMatrix)[i][i] = sum - (*affinityMatrix)[i][i];
+			(affinityMatrix)[i][i] = sum;
 		}
 	}
 }
