@@ -105,7 +105,7 @@ UINT DS_timer::setTimer( UINT _numTimer ) {
 		memAllocTimers() ;
 
 		memcpy(totalTicks, oldTotalTicks, sizeof(TIME_VAL)* oldNumTimer);
-		delete oldTotalTicks ;
+		delete[] oldTotalTicks ;
 	} else {
 		numTimer = _numTimer ;
 		memAllocTimers() ;
@@ -134,7 +134,7 @@ UINT DS_timer::setCounter( UINT _numCounter ) {
 
 		// Restore
 		memcpy(counters, oldCounters, sizeof(UINT)*numOldCounter) ;
-		delete oldCounters ;
+		delete[] oldCounters ;
 
 	} else {
 		numCounter = _numCounter ;
