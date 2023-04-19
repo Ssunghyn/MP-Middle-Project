@@ -131,7 +131,9 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
             }
 
             distance[p1] = partial_distance;
+            #if !USE_V2
             deltas[p1] = quickSelection(partial_distance, local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
+            #endif
         }
 
         #if USE_V2
@@ -140,6 +142,8 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
             for(int p2 = 0; p2 < p1; p2++) {
                 distance[p1][p2] = distance[p2][p1];
             }
+
+            deltas[p1] = quickSelection(distance[p1], local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
         }
         #endif
 
