@@ -5,10 +5,11 @@
 #include <omp.h>
 
 #define SIGMA_DIMENSION 5
-#define TEST_DATA_COUNT 1200
+#define TEST_DATA_COUNT 10000
 #define OMP_OFFSET 16
 #define NUM_THREADS 8
 #define PRINT_RESULT false
+#define USE_V2 false
 
 #define GenDouble (rand() % 4 + ((double)(rand() % 100) / 100.0))
 
@@ -56,7 +57,15 @@ double** generateAffinityMatrix(Point* points, int point_count) {
         double* partial_distance = new double[point_count];
 
         for(int p2 = 0; p2 < point_count; p2++) {
+            #if USE_V2
+            if(p1 > p2) {
+                partial_distance[p2] = distance[p2][p1];
+            } else {
+                partial_distance[p2] = getDistance(points[p1], points[p2]);
+            }
+            #else
             partial_distance[p2] = getDistance(points[p1], points[p2]);
+            #endif
         }
 
         distance[p1] = partial_distance;
@@ -68,7 +77,17 @@ double** generateAffinityMatrix(Point* points, int point_count) {
         double* partial_result = new double[point_count];
 
         for(int p2 = 0; p2 < point_count; p2++) {
-            double affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            double affinity;
+
+            #if USE_V2 
+            if(p1 > p2) {
+                affinity = result[p2][p1];
+            } else {
+                affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            }
+            #else
+                affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            #endif
             partial_result[p2] = affinity;
         }
 
@@ -93,47 +112,64 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
     double** distance = new double*[point_count];
     double* deltas = new double[point_count];
 
-    double** local_pivot_left = new double*[NUM_THREADS];
-    double** local_pivot_right = new double*[NUM_THREADS];
-
-    for(int i = 0; i < NUM_THREADS; i++) {
-        local_pivot_left[i] = new double[point_count];
-        local_pivot_right[i] = new double[point_count];
-    }
-
     #pragma omp parallel num_threads(NUM_THREADS) shared(result, distance, deltas)
     {
+        double* local_pivot_left = new double[point_count];
+        double* local_pivot_right = new double[point_count];
         // Get distance of 2 points
         #pragma omp for
         for(int p1 = 0; p1 < point_count; p1++) {
             int tId = omp_get_thread_num();
             double* partial_distance = new double[point_count];
 
+            #if false
+            for(int p2 = p1; p2 < point_count; p2++) {
+            #else
             for(int p2 = 0; p2 < point_count; p2++) {
+            #endif
                 partial_distance[p2] = getDistance(points[p1], points[p2]);
             }
 
             distance[p1] = partial_distance;
-            deltas[p1] = quickSelection(partial_distance, local_pivot_left[tId], local_pivot_right[tId], point_count, SIGMA_DIMENSION);
+            deltas[p1] = quickSelection(partial_distance, local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
         }
+
+        #if USE_V2
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            for(int p2 = 0; p2 < p1; p2++) {
+                distance[p1][p2] = distance[p2][p1];
+            }
+        }
+        #endif
 
         // Make affinity matrix
         #pragma omp for
         for(int p1 = 0; p1 < point_count; p1++) {
             double* partial_result = new double[point_count];
 
+            #if USE_V2
+            for(int p2 = p1; p2 < point_count; p2++) {
+            #else
             for(int p2 = 0; p2 < point_count; p2++) {
-                double affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
-                partial_result[p2] = affinity;
+            #endif
+                partial_result[p2] = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
             }
 
             result[p1] = partial_result;
-        }   
-    }
+        }
 
-    for(int i = 0; i < NUM_THREADS; i++) {
-        delete[] local_pivot_left[i];
-        delete[] local_pivot_right[i];
+        #if USE_V2
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            for(int p2 = 0; p2 < p1; p2++) {
+                result[p1][p2] = result[p2][p1];
+            }
+        }
+        #endif
+
+        delete[] local_pivot_left;
+        delete[] local_pivot_right;
     }
     
     // Free memory
@@ -143,8 +179,6 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
 
     delete[] distance;
     delete[] deltas;
-    delete[] local_pivot_left;
-    delete[] local_pivot_right;
 
     return result;
 }
@@ -172,14 +206,14 @@ int main() {
 
     bool same = true;
 
-    if(PRINT_RESULT) {
+    #if PRINT_RESULT
         for(int i = 0; i < TEST_DATA_COUNT; i++) {
             printf("(%lf, %lf)\n", points[i].x, points[i].y);
         }
 
         for(int i = 0; i < TEST_DATA_COUNT; i++) {
             for(int j = 0; j < TEST_DATA_COUNT; j++) {
-                printf("%lf ", result[i][j]);
+                printf("%.2lf ", result[i][j]);
             }
             printf("\n");
         }
@@ -204,8 +238,7 @@ int main() {
             }
             printf("\n");
         }
-    }
-
+    #endif
 
     for(int i = 0; i < TEST_DATA_COUNT; i++) {
         for(int j = 0; j < TEST_DATA_COUNT; j++) {
