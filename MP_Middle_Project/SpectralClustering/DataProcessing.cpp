@@ -1,4 +1,9 @@
 #include "DataProcessing.h"
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
 
 void getData(FILE* fp, std::vector<Point>& points) {
 	if (fp == NULL) {
@@ -14,13 +19,6 @@ void getData(FILE* fp, std::vector<Point>& points) {
 		points.push_back(Point(x, y));
 	}
 }
-
-
-#include <iostream>
-#include <cmath>
-
-using namespace std;
-
 
 void qr_algorithm(double** A, int n, double** Q, double** R) {
     // Initialize Q to the identity matrix
@@ -99,8 +97,9 @@ void qr_algorithm(double** A, int n, double** Q, double** R) {
         }
     }
 }
-
-int main() {
+void qrTest()
+//int main() 
+{
     int n = 3;
 
     double** A = new double* [n];
@@ -148,7 +147,7 @@ int main() {
 }
 
 
-int data_main()
+void data_main()
 //int main() 
 {
 	input_path = "circle_data.txt";
