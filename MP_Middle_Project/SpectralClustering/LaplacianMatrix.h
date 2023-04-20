@@ -1,4 +1,4 @@
 #include <vector>
 
-void generateLaplacianMatrix(std::vector<std::vector<double>>* affinityMatrix);
-void generateLaplacianMatrixParallel(std::vector<std::vector<double>>* affinityMatrix);
+double** generateLaplacianMatrix(double* affinityMatrix[], int n);
+double** generateLaplacianMatrixParallel(double* affinityMatrix[], int n);

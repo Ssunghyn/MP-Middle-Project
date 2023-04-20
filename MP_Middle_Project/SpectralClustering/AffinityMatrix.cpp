@@ -1,14 +1,15 @@
-#include <vector>
 #include <cmath>
-#include "SpectralClustring.h"
 #include "DS_definitions.h"
 #include "DS_timer.h"
+#include "AffinityMatrix.h"
 #include <omp.h>
 
 #define SIGMA_DIMENSION 5
-#define TEST_DATA_COUNT 9000
-#define THREADS 8
+#define TEST_DATA_COUNT 10000
 #define OMP_OFFSET 16
+#define NUM_THREADS 8
+#define PRINT_RESULT false
+#define USE_V2 false
 
 #define GenDouble (rand() % 4 + ((double)(rand() % 100) / 100.0))
 
@@ -18,151 +19,244 @@ inline double getDistance(Point p1, Point p2) {
     return sqrt(x + y);
 }
 
-double quickSelection(std::vector<double> others, int k) {
-    double pivot = others[0];
+double quickSelection(double* distances, double* pivot_left, double* pivot_right, int size, int k) {
+    double pivot = distances[0];
     int same = 0;
+    int pivot_left_count = 0;
+    int pivot_right_count = 0;
 
-    std::vector<double> pivot_left, pivot_right;
-
-    /*for(double x : others) {
-        printf("%3lf ", x);
-    }
-    printf("\npivot = %3lf | ", pivot);*/
-
-    for(double x : others) {
-        if(x < pivot) {
-            pivot_left.push_back(x);
-        } else if(x > pivot) {
-            pivot_right.push_back(x);
+    for(int i = 0; i < size; i++) {
+        if(distances[i] < pivot) {
+            pivot_left[pivot_left_count++] = distances[i];
+        } else if(distances[i] > pivot) {
+            pivot_right[pivot_right_count++] = distances[i];
         } else {
             same++;
         }
     }
 
-    /*for(double x : pivot_left) {
-        printf("%3lf ", x);
-    }
-    printf(" /  ");
-    for(double x : pivot_right) {
-        printf("%3lf ", x);
-    }
-    printf("\n");*/
-
-    if(k <= pivot_left.size()) {
-        return quickSelection(pivot_left, k);
-    } else if(k >= pivot_left.size() + 1 && k <= pivot_left.size() + same) {
+    if(k <= pivot_left_count) {
+        return quickSelection(pivot_left, pivot_left, pivot_right, pivot_left_count, k);
+    } else if(k >= pivot_left_count + 1 && k <= pivot_left_count + same) {
         return pivot; 
     } else {
-        return quickSelection(pivot_right, k - pivot_left.size() - same);
+        return quickSelection(pivot_right, pivot_left, pivot_right, pivot_right_count, k - pivot_left_count - same);
     }
 }
 
-std::vector<std::vector<double> > generateAffinityMatrix(std::vector<Point> *points) {
-    std::vector<std::vector<double> > result(points->size());
-    std::vector<std::vector<double> > distance(points->size());
-    std::vector<double> deltas(points->size());
+double** generateAffinityMatrix(Point* points, int point_count) {
+    double** result = new double*[point_count];
+    double** distance = new double*[point_count];
+    double* deltas = new double[point_count];
 
-    for(int p1 = 0; p1 < points->size(); p1++) {
-        std::vector<double> partialDistance(points->size());
+    double* pivot_left = new double[point_count];
+    double* pivot_right = new double[point_count];
 
-        for(int p2 = 0; p2 < points->size(); p2++) {
-            partialDistance[p2] = getDistance((*points)[p1], (*points)[p2]);
+    // Get distance of 2 points
+    for(int p1 = 0; p1 < point_count; p1++) {
+        double* partial_distance = new double[point_count];
+
+        for(int p2 = 0; p2 < point_count; p2++) {
+            #if USE_V2
+            if(p1 > p2) {
+                partial_distance[p2] = distance[p2][p1];
+            } else {
+                partial_distance[p2] = getDistance(points[p1], points[p2]);
+            }
+            #else
+            partial_distance[p2] = getDistance(points[p1], points[p2]);
+            #endif
         }
 
-        distance[p1] = partialDistance;
-        deltas[p1] = quickSelection(partialDistance, SIGMA_DIMENSION);
+        distance[p1] = partial_distance;
+        deltas[p1] = quickSelection(partial_distance, pivot_left, pivot_right, point_count, SIGMA_DIMENSION);
     }
 
-    for(int p1 = 0; p1 < points->size(); p1++) {
-        std::vector<double> partialResult(points->size());
+    // Make affinity matrix
+    for(int p1 = 0; p1 < point_count; p1++) {
+        double* partial_result = new double[point_count];
 
-        for(int p2 = 0; p2 < points->size(); p2++) {
-            double affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
-            partialResult[p2] = affinity;
+        for(int p2 = 0; p2 < point_count; p2++) {
+            double affinity;
+
+            #if USE_V2 
+            if(p1 > p2) {
+                affinity = result[p2][p1];
+            } else {
+                affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            }
+            #else
+                affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            #endif
+            partial_result[p2] = affinity;
         }
 
-        result[p1] = partialResult;
+        result[p1] = partial_result;
     }
+    
+    // Free memory
+    for(int i = 0; i < point_count; i++) {
+        delete[] distance[i];
+    }
+
+    delete[] distance;
+    delete[] deltas;
+    delete[] pivot_left;
+    delete[] pivot_right;
 
     return result;
 }
 
-std::vector<std::vector<double> > generateAffinityMatrix_parallel(std::vector<Point> *points) {
-    std::vector<std::vector<double> > result(points->size());
-    std::vector<std::vector<double> > distance(points->size());
-    std::vector<double> deltas(points->size());
+double** generateAffinityMatrix_parallel(Point* points, int point_count) {
+    double** result = new double*[point_count];
+    double** distance = new double*[point_count];
+    double* deltas = new double[point_count];
 
-    #pragma omp parallel num_threads(THREADS)
+    #pragma omp parallel num_threads(NUM_THREADS) shared(result, distance, deltas)
     {
-        #pragma omp for schedule(static, points->size() / THREADS)
-        for(int p1 = 0; p1 < points->size(); p1++) {
-            std::vector<double> partialDistance(points->size());
+        double* local_pivot_left = new double[point_count];
+        double* local_pivot_right = new double[point_count];
+        // Get distance of 2 points
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            int tId = omp_get_thread_num();
+            double* partial_distance = new double[point_count];
 
-            for(int p2 = 0; p2 < points->size(); p2++) {
-                partialDistance[p2] = getDistance((*points)[p1], (*points)[p2]);
+            #if false
+            for(int p2 = p1; p2 < point_count; p2++) {
+            #else
+            for(int p2 = 0; p2 < point_count; p2++) {
+            #endif
+                partial_distance[p2] = getDistance(points[p1], points[p2]);
             }
 
-            distance[p1] = partialDistance;
-            deltas[p1] = quickSelection(partialDistance, SIGMA_DIMENSION);
+            distance[p1] = partial_distance;
+            #if !USE_V2
+            deltas[p1] = quickSelection(partial_distance, local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
+            #endif
         }
 
-        #pragma omp for schedule(static, points->size() / THREADS)
-        for(int p1 = 0; p1 < points->size(); p1++) {
-            std::vector<double> partialResult(points->size());
-
-            for(int p2 = 0; p2 < points->size(); p2++) {
-                double affinity = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
-                partialResult[p2] = affinity;
+        #if USE_V2
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            for(int p2 = 0; p2 < p1; p2++) {
+                distance[p1][p2] = distance[p2][p1];
             }
 
-            result[p1] = partialResult;
+            deltas[p1] = quickSelection(distance[p1], local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
         }
+        #endif
+
+        // Make affinity matrix
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            double* partial_result = new double[point_count];
+
+            #if USE_V2
+            for(int p2 = p1; p2 < point_count; p2++) {
+            #else
+            for(int p2 = 0; p2 < point_count; p2++) {
+            #endif
+                partial_result[p2] = exp(-distance[p1][p2] / (2 * deltas[p1] * deltas[p2]));
+            }
+
+            result[p1] = partial_result;
+        }
+
+        #if USE_V2
+        #pragma omp for
+        for(int p1 = 0; p1 < point_count; p1++) {
+            for(int p2 = 0; p2 < p1; p2++) {
+                result[p1][p2] = result[p2][p1];
+            }
+        }
+        #endif
+
+        delete[] local_pivot_left;
+        delete[] local_pivot_right;
     }
+    
+    // Free memory
+    for(int i = 0; i < point_count; i++) {
+        delete[] distance[i];
+    }
+
+    delete[] distance;
+    delete[] deltas;
 
     return result;
 }
 
 int main() {
-    double arr[] = {5.974688, 9.825365, 10.688012, 7.398466, 9.35243, 5.811162, 9.177718, 3.696228, 11.196732, 0.000000};
-    int n = sizeof(arr) / sizeof(arr[0]);
-    std::vector<double> vec(arr, arr + n);
+    Point points[TEST_DATA_COUNT];
 
-    //printf("%3lf\n", quickSelection(vec, 5));
-
-    /*for(int i = 0; i < n; i++) {
-        printf("%3lf\n", quickSelection(vec, i + 1));
-    }*/
-
-    printf("Data size: %d", TEST_DATA_COUNT);
+    printf("Data size: %d\n", TEST_DATA_COUNT);
 
     DS_timer timer(2);
 	timer.setTimerName(0, (char*)"Serial");
 	timer.setTimerName(1, (char*)"Parallel");
-
-    std::vector<Point> points;
-    for(int i = 0; i < TEST_DATA_COUNT / 3; i++) {
-        Point p = Point(GenDouble, GenDouble);
-        points.push_back(p);
-    }
-
-    for(int i = 0; i < TEST_DATA_COUNT / 3; i++) {
-        Point p = Point(GenDouble + 20, GenDouble + 10);
-        points.push_back(p);
-    }
-
-    for(int i = 0; i < TEST_DATA_COUNT / 3; i++) {
-        Point p = Point(GenDouble - 20 , GenDouble - 20);
-        points.push_back(p);
+    for(int i = 0; i < TEST_DATA_COUNT; i++) {
+        points[i] = Point(GenDouble, GenDouble);
     }
 
     timer.onTimer(0);
-    std::vector<std::vector<double> > result = generateAffinityMatrix(&points);
+    double** result = generateAffinityMatrix(points, TEST_DATA_COUNT);
     timer.offTimer(0);
 
     timer.onTimer(1);
-    std::vector<std::vector<double> > result2 = generateAffinityMatrix_parallel(&points);
+    double** result2 = generateAffinityMatrix_parallel(points, TEST_DATA_COUNT);
     timer.offTimer(1);
+
+
+    bool same = true;
+
+    #if PRINT_RESULT
+        for(int i = 0; i < TEST_DATA_COUNT; i++) {
+            printf("(%lf, %lf)\n", points[i].x, points[i].y);
+        }
+
+        for(int i = 0; i < TEST_DATA_COUNT; i++) {
+            for(int j = 0; j < TEST_DATA_COUNT; j++) {
+                printf("%.2lf ", result[i][j]);
+            }
+            printf("\n");
+        }
+
+        printf("---------------------------------------------------------------------\n");
+
+        for(int i = 0; i < TEST_DATA_COUNT; i++) {
+            for(int j = 0; j < TEST_DATA_COUNT; j++) {
+                printf("%lf ", result2[i][j]);
+            }
+            printf("\n");
+        }
+
+        printf("---------------------------------------------------------------------\n");
+
+        for(int i = 0; i < TEST_DATA_COUNT; i++) {
+            for(int j = 0; j < TEST_DATA_COUNT; j++) {
+                printf("%lf ", result[i][j] - result2[i][j]);
+                if(abs(result[i][j] - result2[i][j]) > 0.0000000001) {
+                    same = false;
+                }
+            }
+            printf("\n");
+        }
+    #endif
+
+    for(int i = 0; i < TEST_DATA_COUNT; i++) {
+        for(int j = 0; j < TEST_DATA_COUNT; j++) {
+            if(abs(result[i][j] - result2[i][j]) > 0.0000000001) {
+                same = false;
+            }
+        }
+    }
+
+    if(same) {
+        printf("RESULT IS SAME");
+    } else {
+        printf("RESULT IS NOT SAME");
+    }
 
     timer.printTimer();
 }
-
