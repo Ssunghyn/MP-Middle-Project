@@ -145,13 +145,17 @@
     <ClCompile Include="DS_timer.cpp" />
     <ClCompile Include="LaplacianMatrix.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="QRDecomposition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AffinityMatrix.h" />
     <ClInclude Include="DataProcessing.h" />
     <ClInclude Include="DS_definitions.h" />
     <ClInclude Include="DS_timer.h" />
+    <ClInclude Include="jacobi_pd.hpp" />
     <ClInclude Include="LaplacianMatrix.h" />
+    <ClInclude Include="matrix_alloc_jpd.hpp" />
+    <ClInclude Include="QRDecomposition.h" />
     <ClInclude Include="SpectralClustring.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
