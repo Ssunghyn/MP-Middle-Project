@@ -13,10 +13,10 @@ double** _generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n
 double** _generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n);
 
 #define GenRandom ((double)(rand() % 100) / 10)
-#define SIZE (1000)
+#define SIZE (10000)
 #define THREADS (8)
 
-std::vector<std::vector<double>> sample(SIZE);
+std::vector<std::vector<double> > sample(SIZE);
 
 int lapacianTestMain()
 //int main(int argc, char** argv) 

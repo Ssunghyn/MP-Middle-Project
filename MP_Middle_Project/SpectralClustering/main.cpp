@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
-#include <Eigen/Dense>
+#include "eigen-3.4.0/Eigen/Dense"
 #include "AffinityMatrix.h"
 #include "LaplacianMatrix.h"
 #include "DataProcessing.h"
@@ -19,7 +19,7 @@ double** MultiMethod1(Point* points, int n) {
 	double** AffinityMatrix = generateAffinityMatrix_parallel(points, n);
 	return generateLaplacianMatrixParallelCase1(AffinityMatrix, n);
 }
-double** MultiMethod2(Point* points, int n) {
+/*double** MultiMethod2(Point* points, int n) {
 	double** AffinityMatrix = generateAffinityMatrix_parallel(points, n);
 	return generateLaplacianMatrixParallelCase2(AffinityMatrix, n);
 }
@@ -34,7 +34,7 @@ double** MultiMethod4_1(Point* points, int n) {
 double** MultiMethod4_2(Point* points, int n) {
 	double** AffinityMatrix = generateAffinityMatrix_parallel(points, n);
 	return generateLaplacianMatrixParallelCase4_2(AffinityMatrix, n);
-}
+}*/
 void swap(double& x1, double& x2) {
 	double temp = x1;
 	x1 = x2;
@@ -66,7 +66,11 @@ int main(int argc, char** argv)
 	std::string file_name = ".\\data\\"+ fname;
 	int n = atoi(argv[2]);
 	FILE* fp;
+    #ifdef _WIN64
 	fopen_s(&fp, file_name.c_str(), "r");
+    #else
+	fp = fopen(file_name.c_str(), "r");
+    #endif
 	Point* points = new Point[n];
 	bool isOpen = getData(fp, points, n);
 	if (!isOpen) {
@@ -86,6 +90,7 @@ int main(int argc, char** argv)
 	double** dataMuliti1 = MultiMethod1(points, n);
 	timer.offTimer(1);
 
+	/*
 	timer.onTimer(2);
 	double** dataMuliti2 = MultiMethod2(points, n);
 	timer.offTimer(2);
@@ -101,9 +106,11 @@ int main(int argc, char** argv)
 	timer.onTimer(5);
 	double** dataMuliti4_2 = MultiMethod4_2(points, n);
 	timer.offTimer(5);
+	*/
 
 	bool isCorrect = true;
 	int idx[2] = { 0 };
+	/*
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
 			double single = dataSingle[i][j];
@@ -115,18 +122,32 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+	*/
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			double single = dataSingle[i][j];
+			if (abs(single - dataMuliti1[i][j]) > TOL) {
+				isCorrect = false;
+				idx[0] = i; idx[1] = j;
+				break;
+			}
+		}
+	}
 
 	if (isCorrect) {
-		printf("All  DATA is Correct!!.\n");
+		printf("Data is correct.\n");
 	}
 	else {
-		printf("Data is not Correct.\n");
+		printf("Data is not correct. ");
 		printf("Single[%d][%d] : %lf\n", idx[0], idx[1],dataSingle[idx[0]][idx[1]]);
+		/*
 		printf("dataMuliti1[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti1[idx[0]][idx[1]]);
 		printf("dataMuliti2[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti2[idx[0]][idx[1]]);
 		printf("dataMuliti3[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti3[idx[0]][idx[1]]);
 		printf("dataMuliti4_1[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti4_1[idx[0]][idx[1]]);
 		printf("dataMuliti4_2[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti4_2[idx[0]][idx[1]]);
+		*/
 	}
 
 	MatrixXd A(n, n);
@@ -161,8 +182,14 @@ int main(int argc, char** argv)
 	saveData(saveName.c_str(), points, results, n);
 	timer.printTimer();
 
+	/*
 	for (int i = 0; i < n; i++) {
 		delete[] dataSingle[i], dataMuliti1[i], dataMuliti2[i], dataMuliti3[i], dataMuliti4_1[i], dataMuliti4_2[i];
+	}
+	*/
+
+	for (int i = 0; i < n; i++) {
+		delete[] dataSingle[i], dataMuliti1[i];
 	}
 	delete[] points, results;
 
