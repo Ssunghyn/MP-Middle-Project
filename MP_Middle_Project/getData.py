@@ -5,7 +5,6 @@ import numpy as np
 np.random.seed(0)
 random_state = 8
 n_sample = 2000
-np.linalg.eig()
 
 def get_circle_data():
     X, y = datasets.make_circles(n_samples=n_sample, factor=0.3, noise=0.03)
@@ -15,7 +14,7 @@ def get_circle_data():
     point_str = "\n".join(x_to_str)
     # print(f"{X[0][0]} {X[0][1]}")
     # print(point_str.split("\n")[0])
-    with open("SpectralClustering/circle_data.txt", "w") as f:
+    with open("SpectralClustering/data/circle_data.txt", "w") as f:
         f.write(point_str)
 
 
@@ -25,7 +24,7 @@ def get_moon_data():
     plt.show()
     x_to_str = [f"{p[0]} {p[1]}" for p in X]
     point_str = "\n".join(x_to_str)
-    with open("SpectralClustering/moon_data.txt", "w") as f:
+    with open("SpectralClustering/data/moon_data.txt", "w") as f:
         f.write(point_str)
 
 
@@ -35,7 +34,7 @@ def get_blob_data():
     plt.show()
     x_to_str = [f"{p[0]} {p[1]}" for p in X]
     point_str = "\n".join(x_to_str)
-    with open("SpectralClustering/blob_data.txt", "w") as f:
+    with open("SpectralClustering/data/blob_data.txt", "w") as f:
         f.write(point_str)
 
 

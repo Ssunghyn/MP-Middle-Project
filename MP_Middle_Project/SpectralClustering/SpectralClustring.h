@@ -1,3 +1,4 @@
+#pragma once
 struct _Point;
 
 struct _Point {
