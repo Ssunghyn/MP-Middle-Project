@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
-#include <Eigen/Dense>
+#include "eigen-3.4.0/Eigen/Dense"
 #include "AffinityMatrix.h"
 #include "LaplacianMatrix.h"
 #include "DataProcessing.h"
@@ -66,7 +66,11 @@ int main(int argc, char** argv)
 	std::string file_name = ".\\data\\"+ fname;
 	int n = atoi(argv[2]);
 	FILE* fp;
+    #ifdef _WIN64
 	fopen_s(&fp, file_name.c_str(), "r");
+    #else
+	fp = fopen(file_name.c_str(), "r");
+    #endif
 	Point* points = new Point[n];
 	bool isOpen = getData(fp, points, n);
 	if (!isOpen) {

@@ -7,7 +7,7 @@ using namespace std;
 bool getData(FILE* fp, Point* points, int n) {
 	if (fp == NULL) {
 		printf("FILE NOT OPEN!\n");
-		return;
+		return false;
 	}
 
     int i = 0;
@@ -15,7 +15,11 @@ bool getData(FILE* fp, Point* points, int n) {
 		double x = 0;
 		double y = 0;
 		
+		#ifdef _WIN64
 		fscanf_s(fp, "%lf %lf", &x, &y);
+		#else
+		fscanf(fp, "%lf %lf", &x, &y);
+		#endif
 		points[i] = Point(x, y);
         i++;
 	}
@@ -30,7 +34,12 @@ bool getData(FILE* fp, Point* points, int n) {
 
 void saveData(const char* fileName, double* points, int n) {
 	FILE* fp;
+	#ifdef _WIN64
 	fopen_s(&fp,fileName, "w");
+	#else
+	fp = fopen(fileName, "w");
+	#endif
+	
 
 	if (fp == NULL) {
 		printf("FILE NOT OPEN!\n");
@@ -50,7 +59,11 @@ void data_main()
 	const char* input_path = "circle_data.txt";
     int n = 10000;
 	FILE* fp;
+	#ifdef _WIN64
 	fopen_s(&fp, input_path, "r");
+	#else
+	fp = fopen(input_path, "r");
+	#endif
 	Point* points = new Point[n];
 	getData(fp, points);
 	for (int i = 0; i < n; i++)

@@ -9,7 +9,8 @@
 #define OMP_OFFSET 16
 #define NUM_THREADS 8
 #define PRINT_RESULT false
-#define USE_V2 false
+#define USE_V2_SERIAL true
+#define USE_V2_PARALLEL false
 
 #define GenDouble (rand() % 4 + ((double)(rand() % 100) / 100.0))
 
@@ -57,7 +58,7 @@ double** generateAffinityMatrix(Point* points, int point_count) {
         double* partial_distance = new double[point_count];
 
         for(int p2 = 0; p2 < point_count; p2++) {
-            #if USE_V2
+            #if USE_V2_SERIAL
             if(p1 > p2) {
                 partial_distance[p2] = distance[p2][p1];
             } else {
@@ -79,7 +80,7 @@ double** generateAffinityMatrix(Point* points, int point_count) {
         for(int p2 = 0; p2 < point_count; p2++) {
             double affinity;
 
-            #if USE_V2 
+            #if USE_V2_SERIAL 
             if(p1 > p2) {
                 affinity = result[p2][p1];
             } else {
@@ -122,7 +123,7 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
             int tId = omp_get_thread_num();
             double* partial_distance = new double[point_count];
 
-            #if false
+            #if USE_V2_PARALLEL
             for(int p2 = p1; p2 < point_count; p2++) {
             #else
             for(int p2 = 0; p2 < point_count; p2++) {
@@ -131,12 +132,12 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
             }
 
             distance[p1] = partial_distance;
-            #if !USE_V2
+            #if !USE_V2_PARALLEL
             deltas[p1] = quickSelection(partial_distance, local_pivot_left, local_pivot_right, point_count, SIGMA_DIMENSION);
             #endif
         }
 
-        #if USE_V2
+        #if USE_V2_PARALLEL
         #pragma omp for
         for(int p1 = 0; p1 < point_count; p1++) {
             for(int p2 = 0; p2 < p1; p2++) {
@@ -152,7 +153,7 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
         for(int p1 = 0; p1 < point_count; p1++) {
             double* partial_result = new double[point_count];
 
-            #if USE_V2
+            #if USE_V2_PARALLEL
             for(int p2 = p1; p2 < point_count; p2++) {
             #else
             for(int p2 = 0; p2 < point_count; p2++) {
@@ -163,7 +164,7 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
             result[p1] = partial_result;
         }
 
-        #if USE_V2
+        #if USE_V2_PARALLEL
         #pragma omp for
         for(int p1 = 0; p1 < point_count; p1++) {
             for(int p2 = 0; p2 < p1; p2++) {
