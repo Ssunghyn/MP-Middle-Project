@@ -30,6 +30,9 @@
     <ClCompile Include="LaplacianMatrix.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LaplacianTest.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AffinityMatrix.h">

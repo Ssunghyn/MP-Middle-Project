@@ -5,12 +5,12 @@
 #include "DS_timer.h"
 #include "DS_definitions.h"
 
-double** generateLaplacianMatrix(double *affinityMatrix[], int n);
-double** generateLaplacianMatrixParallelCase1(double* affinityMatrix[], int n);
-double** generateLaplacianMatrixParallelCase2(double* affinityMatrix[], int n);
-double** generateLaplacianMatrixParallelCase3(double* affinityMatrix[], int n);
-double** generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n);
-double** generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n);
+double** _generateLaplacianMatrix(double *affinityMatrix[], int n);
+double** _generateLaplacianMatrixParallelCase1(double* affinityMatrix[], int n);
+double** _generateLaplacianMatrixParallelCase2(double* affinityMatrix[], int n);
+double** _generateLaplacianMatrixParallelCase3(double* affinityMatrix[], int n);
+double** _generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n);
+double** _generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n);
 
 #define GenRandom ((double)(rand() % 100) / 10)
 #define SIZE (1000)
@@ -18,7 +18,9 @@ double** generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n)
 
 std::vector<std::vector<double>> sample(SIZE);
 
-int main(int argc, char** argv) {
+int lapacianTestMain()
+//int main(int argc, char** argv) 
+{
 	DS_timer timer(6);
 	timer.setTimerName(0, (char*)"Serial");
 	timer.setTimerName(1, (char*)"Parallel Case 1");
@@ -46,7 +48,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	timer.onTimer(0);
-	double** result = generateLaplacianMatrix(data, SIZE);
+	double** result = _generateLaplacianMatrix(data, SIZE);
 
 	timer.offTimer(0);
 	for (int i = 0; i < SIZE; i++)
@@ -66,7 +68,7 @@ int main(int argc, char** argv) {
 	}
 	timer.onTimer(1);
 
-	result = generateLaplacianMatrixParallelCase1(data2, SIZE);
+	result = _generateLaplacianMatrixParallelCase1(data2, SIZE);
 	timer.offTimer(1);
 	/*for (int i = 0; i < SIZE; i++)
 	{
@@ -85,7 +87,7 @@ int main(int argc, char** argv) {
 	}
 	timer.onTimer(2);
 
-	result = generateLaplacianMatrixParallelCase2(data3, SIZE);
+	result = _generateLaplacianMatrixParallelCase2(data3, SIZE);
 	timer.offTimer(2);
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -105,7 +107,7 @@ int main(int argc, char** argv) {
 	}
 	timer.onTimer(3);
 
-	result = generateLaplacianMatrixParallelCase3(data4, SIZE);
+	result = _generateLaplacianMatrixParallelCase3(data4, SIZE);
 	timer.offTimer(3);
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -124,7 +126,7 @@ int main(int argc, char** argv) {
 	}
 	timer.onTimer(4);
 
-	result = generateLaplacianMatrixParallelCase4_1(data5, SIZE);
+	result = _generateLaplacianMatrixParallelCase4_1(data5, SIZE);
 	timer.offTimer(4);
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -143,7 +145,7 @@ int main(int argc, char** argv) {
 	}
 	timer.onTimer(5);
 
-	result = generateLaplacianMatrixParallelCase4_2(data6, SIZE);
+	result = _generateLaplacianMatrixParallelCase4_2(data6, SIZE);
 	timer.offTimer(5);
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -151,13 +153,14 @@ int main(int argc, char** argv) {
 	}
 	delete[] result;
 
+	printf("Data Size = %d\n", SIZE);
 	timer.printTimer();
 
 
 	EXIT_WIHT_KEYPRESS;
 }
 
-double** generateLaplacianMatrix(double *affinityMatrix[], int n) {
+double** _generateLaplacianMatrix(double *affinityMatrix[], int n) {
 	double** result = new double* [n];
 	for (int i = 0; i < n; i++)
 	{
@@ -181,7 +184,7 @@ double** generateLaplacianMatrix(double *affinityMatrix[], int n) {
 	return result;
 }
 
-double** generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n) {
+double** _generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n) {
 	int threadCount1 = THREADS / 2;
 	int	threadCount2 = THREADS - threadCount1;
 	double** result = new double* [n];
@@ -227,7 +230,7 @@ double** generateLaplacianMatrixParallelCase4_1(double* affinityMatrix[], int n)
 	return result;
 }
 
-double** generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n) {
+double** _generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n) {
 	double** result = new double* [n];
 	int threadCount1 = THREADS / 2;
 	int threadCount2 = THREADS - threadCount1;
@@ -269,7 +272,7 @@ double** generateLaplacianMatrixParallelCase4_2(double* affinityMatrix[], int n)
 	return result;
 }
 
-double** generateLaplacianMatrixParallelCase3(double* affinityMatrix[], int n) {
+double** _generateLaplacianMatrixParallelCase3(double* affinityMatrix[], int n) {
 	double** result = new double* [n];
 	for (int i = 0; i < n; i++)
 	{
@@ -298,7 +301,7 @@ double** generateLaplacianMatrixParallelCase3(double* affinityMatrix[], int n) {
 	return result;
 }
 
-double** generateLaplacianMatrixParallelCase1(double* affinityMatrix[], int n) {
+double** _generateLaplacianMatrixParallelCase1(double* affinityMatrix[], int n) {
 	double** result = new double* [n];
 	#pragma omp parallel num_threads(THREADS) 
 	{
@@ -326,7 +329,7 @@ double** generateLaplacianMatrixParallelCase1(double* affinityMatrix[], int n) {
 	return result;
 }
 
-double** generateLaplacianMatrixParallelCase2(double* affinityMatrix[], int n) {
+double** _generateLaplacianMatrixParallelCase2(double* affinityMatrix[], int n) {
 	double** result = new double* [n];
 	for (int i = 0; i < n; i++)
 	{

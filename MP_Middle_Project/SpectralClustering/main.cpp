@@ -59,7 +59,7 @@ void find_2nd_Min(VectorXd& eigenValue, MatrixXd& eigenVector) {
 	}
 }
 
-//void realMain()
+//int realMain(int argc, char** argv)
 int main(int argc, char** argv)
 {
 	std::string fname = argv[1];
@@ -117,10 +117,10 @@ int main(int argc, char** argv)
 	}
 
 	if (isCorrect) {
-		printf("모든  DATA가 일치합니다.\n");
+		printf("All  DATA is Correct!!.\n");
 	}
 	else {
-		printf("데이터가 일치하지 않습니다.");
+		printf("Data is not Correct.\n");
 		printf("Single[%d][%d] : %lf\n", idx[0], idx[1],dataSingle[idx[0]][idx[1]]);
 		printf("dataMuliti1[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti1[idx[0]][idx[1]]);
 		printf("dataMuliti2[%d][%d] : %lf\n", idx[0], idx[1], dataMuliti2[idx[0]][idx[1]]);
@@ -158,11 +158,13 @@ int main(int argc, char** argv)
 		file_name.pop_back();
 	}
 	saveName = file_name + "_result.txt";
-	saveData(saveName.c_str(), results, n);
+	saveData(saveName.c_str(), points, results, n);
 	timer.printTimer();
 
 	for (int i = 0; i < n; i++) {
 		delete[] dataSingle[i], dataMuliti1[i], dataMuliti2[i], dataMuliti3[i], dataMuliti4_1[i], dataMuliti4_2[i];
 	}
 	delete[] points, results;
+
+	return 0;
 }

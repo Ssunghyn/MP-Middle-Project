@@ -7,8 +7,8 @@ using namespace std;
 bool getData(FILE* fp, Point* points, int n) {
 	if (fp == NULL) {
 		printf("FILE NOT OPEN!\n");
-		return;
-	}
+		return false;
+	} 
 
     int i = 0;
 	while (!feof(fp)) {
@@ -28,7 +28,7 @@ bool getData(FILE* fp, Point* points, int n) {
 	return false;
 }
 
-void saveData(const char* fileName, double* points, int n) {
+void saveData(const char* fileName, Point* points, double* results, int n) {
 	FILE* fp;
 	fopen_s(&fp,fileName, "w");
 
@@ -38,7 +38,7 @@ void saveData(const char* fileName, double* points, int n) {
 	}
 
 	for(int i = 0; i < n; i++)
-		fprintf(fp, "%lf\n", points[i]);
+		fprintf(fp, "%lf %lf %lf\n", points[i].x,points[i].y,results[i]);
 
 	fclose(fp);
 }
@@ -52,7 +52,7 @@ void data_main()
 	FILE* fp;
 	fopen_s(&fp, input_path, "r");
 	Point* points = new Point[n];
-	getData(fp, points);
+	getData(fp, points,n);
 	for (int i = 0; i < n; i++)
 		printf("%lf %lf\n", points[i].x, points[i].y);
 }

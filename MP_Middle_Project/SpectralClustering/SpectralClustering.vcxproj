@@ -146,6 +146,7 @@
     <ClCompile Include="DataProcessing.cpp" />
     <ClCompile Include="DS_timer.cpp" />
     <ClCompile Include="LaplacianMatrix.cpp" />
+    <ClCompile Include="LaplacianTest.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
