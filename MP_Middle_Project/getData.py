@@ -6,6 +6,7 @@ np.random.seed(0)
 random_state = 8
 n_sample = 2000
 
+
 def get_circle_data():
     X, y = datasets.make_circles(n_samples=n_sample, factor=0.3, noise=0.03)
     plt.scatter(X[:, 0], X[:, 1])

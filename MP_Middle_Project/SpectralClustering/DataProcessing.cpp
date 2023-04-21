@@ -24,8 +24,8 @@ bool getData(FILE* fp, Point* points, int n) {
 
 	if (i == n)
 		return true;
-	else
-		return false;
+	
+	return false;
 }
 
 void saveData(const char* fileName, double* points, int n) {

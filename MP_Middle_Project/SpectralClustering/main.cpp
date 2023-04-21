@@ -68,7 +68,10 @@ int main(int argc, char** argv)
 	FILE* fp;
 	fopen_s(&fp, file_name.c_str(), "r");
 	Point* points = new Point[n];
-	getData(fp, points);
+	bool isOpen = getData(fp, points, n);
+	if (!isOpen) {
+		return -1;
+	}
 
 	std::string name[6] = { "Single Method", "Multi Method1","Multi Method2" ,"Multi Method3" ,"Multi Method4_1" ,"Multi Method4_2" };
 	DS_timer timer(6);
