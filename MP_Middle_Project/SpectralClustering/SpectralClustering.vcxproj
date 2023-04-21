@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AffinityMatrix.cpp" />
+    <ClCompile Include="AffinityMatrix_test.cpp" />
     <ClCompile Include="DataProcessing.cpp" />
     <ClCompile Include="DS_timer.cpp" />
     <ClCompile Include="LaplacianMatrix.cpp" />
