@@ -3,4 +3,4 @@
 
 
 bool getData(FILE* fp, Point* points, int n);
-void saveData(const char* fileName, Point* points, double* results, int n);
+void saveData(const char* fileName, Point* points, int* results, int n);

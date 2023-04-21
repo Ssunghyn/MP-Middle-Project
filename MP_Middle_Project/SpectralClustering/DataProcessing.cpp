@@ -32,7 +32,7 @@ bool getData(FILE* fp, Point* points, int n) {
 	return false;
 }
 
-void saveData(const char* fileName, Point* points, double* results, int n) {
+void saveData(const char* fileName, Point* points, int* results, int n) {
 	FILE* fp;
 	#ifdef _WIN64
 	fopen_s(&fp,fileName, "w");
@@ -47,7 +47,7 @@ void saveData(const char* fileName, Point* points, double* results, int n) {
 	}
 
 	for(int i = 0; i < n; i++)
-		fprintf(fp, "%lf %lf %lf\n", points[i].x,points[i].y,results[i]);
+		fprintf(fp, "%lf %lf %d\n", points[i].x,points[i].y,results[i]);
 
 	fclose(fp);
 }

@@ -6,6 +6,8 @@
 #include "DataProcessing.h"
 #include "DS_definitions.h"
 #include "DS_timer.h"
+#include <utility>
+#include <vector>
 
 using namespace Eigen;
 
@@ -41,6 +43,56 @@ void swap(double& x1, double& x2) {
 	x2 = temp;
 }
 
+void labelDecomposition(MatrixXd& eigenVectors, int* results, int n) {
+	std::vector<std::pair<double, int>> dictionary;
+	int size = 0;
+	for (int i = 0; i < n; i++) {
+		if (dictionary.empty()) {
+			std::pair<double, int> item(eigenVectors(i, 1), 1);
+			dictionary.push_back(item);
+			size++;
+		}
+		else {
+			for (int j = 0; j < size; j++) {
+				if (abs(dictionary[j].first - eigenVectors(i, 1)) < 1e-3) {
+					dictionary[j].second += 1;
+					break;
+				}
+				if (j == size - 1) {
+					std::pair<double, int> item(eigenVectors(i, 1), 1);
+					dictionary.push_back(item);
+					size++;
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < 2; i++) {
+		int max = i;
+		for (int j = i + 1; j < size; j++) {
+			if (dictionary[max].second < dictionary[j].second) {
+				max = j;
+			}
+		}
+		std::swap(dictionary[max], dictionary[i]);
+	}
+
+	double labels[2];
+	labels[0] = dictionary[0].first;
+	labels[1] = dictionary[1].first;
+
+	printf("Size = %d\n", size);
+	printf("label 1 %lf\nlabel 2 %lf\n", labels[0], labels[1]);
+
+	for (int i = 0; i < n; i++) {
+		if (abs(eigenVectors(i, 1) - labels[0]) > abs(eigenVectors(i, 1) - labels[1])) {
+			results[i] = 1;
+		}
+		else {
+			results[i] = -1;
+		}
+	}
+}
 
 void find_2nd_Min(VectorXd& eigenValue, MatrixXd& eigenVector) {
 	int n = eigenVector.rows();
@@ -151,35 +203,53 @@ int main(int argc, char** argv)
 	}
 
 	MatrixXd A(n, n);
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			A(i, j) = dataSingle[i][j];
-	MatrixXd eigenVectors(n, n);
-	VectorXd eigenValues(n);
-	EigenSolver<MatrixXd> solver(A);
-	MatrixXcd solveEigenVector = solver.eigenvectors();
-	VectorXcd solveEigenValue = solver.eigenvalues();
+	MatrixXd B(n, n);
 
-	for (int i = 0; i < n; i++) {
-		eigenValues[i] = solveEigenValue[i].real();
-		for (int j = 0; j < n; j++) {
-			eigenVectors(i, j) = solveEigenVector(i, j).real();
-		}
-	}
-
-	find_2nd_Min(eigenValues, eigenVectors);
-	double* results = new double[n];
-	for (int i = 0; i < n; i++) {
-		results[i] = eigenVectors(i, 1);
-	}
-
-	std::string saveName;
 	for (int i = 0; i < 8; i++)
 	{
 		file_name.pop_back();
 	}
-	saveName = file_name + "_result.txt";
-	saveData(saveName.c_str(), points, results, n);
+
+	
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			A(i, j) = dataSingle[i][j]; 
+			B(i, j) = dataMuliti1[i][j];
+		}
+	}
+
+	#pragma omp parallel for num_threads(2)
+	for (int tid = 0; tid < 2; tid++) {
+		int* results = new int[n];
+
+		MatrixXd eigenVectors(n, n);
+		VectorXd eigenValues(n);
+		EigenSolver<MatrixXd> solver;
+		if (tid == 0)
+			solver = EigenSolver<MatrixXd>(A);
+		else
+			solver = EigenSolver<MatrixXd>(B);
+
+		MatrixXcd solveEigenVector = solver.eigenvectors();
+		VectorXcd solveEigenValue = solver.eigenvalues();
+
+		for (int i = 0; i < n; i++) {
+			eigenValues[i] = solveEigenValue[i].real();
+			for (int j = 0; j < n; j++) {
+				eigenVectors(i, j) = solveEigenVector(i, j).real();
+			}
+		}
+
+		find_2nd_Min(eigenValues, eigenVectors);
+		labelDecomposition(eigenVectors, results, n);
+		
+		std::string saveName;
+		saveName = file_name + name[tid] + "_result.txt";
+		saveData(saveName.c_str(), points, results, n);
+
+		delete[] results;
+	}
+	
 	timer.printTimer();
 
 	/*
@@ -191,7 +261,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < n; i++) {
 		delete[] dataSingle[i], dataMuliti1[i];
 	}
-	delete[] points, results;
+	delete[] points;
 
 	return 0;
 }
