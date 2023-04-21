@@ -187,7 +187,9 @@ double** generateAffinityMatrix_parallel(Point* points, int point_count) {
     return result;
 }
 
-int main() {
+void AfffinityMain()
+//int main() 
+{
     Point points[TEST_DATA_COUNT];
 
     printf("Data size: %d\n", TEST_DATA_COUNT);

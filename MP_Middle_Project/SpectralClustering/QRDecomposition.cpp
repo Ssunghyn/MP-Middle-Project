@@ -6,6 +6,20 @@
 
 #define GenFloat rand()%100 + ((rand()%100)/100.0)
 
+void printMat(double** A, int n) {
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			/*
+			if (A[i][j] < 0)
+				printf("%9.6lf   ", A[i][j]);
+			else
+				printf("%10.6lf   ", A[i][j]);
+			*/
+			printf("%11.6lf   ", A[i][j]);
+		}
+		printf("\n");
+	}
+}
 void Transform(double** A, double** AT, int n) 
 {
 	for (int i = 0; i < n; i++)
@@ -81,107 +95,124 @@ double dots(double* A, double* B, int n)
 	}
 	return C;
 }
-void QR_Decomposition(double** A, double** Q, double** R, int n)
-{
-	double** uT = new double* [n];
+void QR_Factorization(double** A, double** Q, double** R, double** H, int n) {
+
+	// step 1. set vector c, e, v
+	double* c = new double[n];
+	double e = 0;
+	double* v = new double[n];
 	for (int i = 0; i < n; i++)
-		uT[i] = new double[n];
+		c[i] = A[i][0];
 
-	double** AT = new double*[n];
-	for (int i = 0; i < n; i++)
-		AT[i] = new double[n];
-	Transform(A, AT, n);
+	e = c[0] > 0 ? 1 : -1;
 
-	for (int i = 0; i < n; i++)
-		uT[0][i] = AT[0][i];
-
-
-	for (int i = 0; i < n; i++) {
-		Q[0][i] = uT[0][i] / norm(uT[0], n);
-	}
-
+	double normC = norm(c, n);
+	v[0] = c[0] + normC * e;
 	for (int i = 1; i < n; i++) {
-		// u_{i th} 열 벡터에 A_{i th} 열벡터 값 대입
-		for (int j = 0; j < n; j++)
-			uT[i][j] = AT[i][j];
-
-		// 각 u 벡터 구하기
-		for (int j = 0; j < i; j++) {
-			double mulAQ = dots(AT[i], Q[j], n);
-			for (int k = 0; k < n; k++) {
-				uT[i][k] -= mulAQ * Q[j][k];
-			}
-		}
-
-		// 각 정규화된 e 벡터 계산
-		double norm_u_i = norm(uT[i], n);
-
-		for (int j = 0; j < n; j++) {
-			Q[i][j] = uT[i][j] / norm_u_i;
-		}
+		v[i] = c[i];
 	}
 
-	for (int i = 0; i < n; i++) {
-		for (int j = i; j < n; j++) {
-			R[i][j] = dots(AT[j], Q[i], n);
-		}
-	}
-
-	Transform(Q, AT, n);
-	copy(AT, Q, n);
-
+	//double factor = dots(v, v, n);
+	double factor = 0;
 	for (int i = 0; i < n; i++)
-		delete[] uT[i], AT[i];
-}
-double getDifference(double** A, double** B, int n)
-{
-	double max = 0;
+		factor += v[i] * v[i];
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
-			double diff = abs(A[i][j] - B[i][j]);
-			if (diff > max) {
-				max = diff;
+			H[i][j] = -2.0 / factor * v[i] * v[j];
+		}
+		H[i][i] += 1;
+	}
+
+	// Q = H, R = HA
+	//copy(H, Q, n);
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			Q[i][j] = H[i][j];
+			R[i][j] = 0;
+		}
+	}
+	//matMul(H, A, R, n);
+	for (int i = 0; i < n; i++) {
+		double sum = 0;
+		for (int k = 0; k < n; k++) {
+			for (int j = 0; j < n; j++) {
+				R[i][j] += H[i][k] * A[k][j];
 			}
 		}
 	}
-	return max;
+	//double** RT = Transform(R, n);  // R.T
+
+	for (int i = 1; i < n - 1; i++) {
+
+		for (int j = 0; j < n; j++) {
+			if (j < i)
+				c[j] = 0;
+			else
+				c[j] = R[j][i];
+		}
+
+		e = c[i] > 0 ? 1 : -1;
+
+		normC = norm(c, n);
+		for (int j = 0; j < n; j++) {
+			v[j] = c[j];
+		}
+		v[i] += normC * e;
+
+		factor = dots(v, v, n);
+		for (int j = 0; j < n; j++) {
+			for (int k = 0; k < n; k++) {
+				H[j][k] = -2.0 / factor * v[j] * v[k];
+			}
+			H[j][j] += 1;
+		}
+
+		matrixMul(Q, H, Q, n);
+		matrixMul(H, R, R, n);
+
+	}
+	//R = Transform(RT, n);
+
+	delete[] c, v;
+}
+bool isDiag(double** A, int n, double tol) {
+	for (int i = 0; i < n; i++) {
+		for (int j = i + 1; j < n; j++) {
+			if (abs(A[i][j]) > tol) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 void findEigenQR(double** A, double* eigenValue, double** eigenVector, int maxIter, int n, double tol)
 {
+	double** A_new = new double*[n];
+	double** Q = new double*[n];
+	double** R = new double*[n];
+	double** H = new double* [n];
+
 	for (int i = 0; i < n; i++) {
 		eigenVector[i][i] = 1.0;
+		H[i] = new double[n];
+		A_new[i] = new double[n];
+		R[i] = new double[n];
+		Q[i] = new double[n];
 	}
 
-	double** A_old = new double*[n];
-	for (int i = 0; i < n; i++)
-		A_old[i] = new double[n];
-
-	double** A_new = new double*[n];
-	for (int i = 0; i < n; i++)
-		A_new[i] = new double[n];
-
-	double** Q = new double*[n];
-	for (int i = 0; i < n; i++)
-		Q[i] = new double[n];
-
-	double** R = new double*[n];
-	for (int i = 0; i < n; i++)
-		R[i] = new double[n];
-
-	copy(A, A_old, n);
-	copy(A, A_new, n);
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			A_new[i][j] = A[i][j];
+		}
+	}
+	
 	int count = 0;
-	double diff = INT_MAX;
 
-	while ((diff > tol) && (count < maxIter))
-		//while ((diff > tol))
-		//while (count < maxIter)
+	while (!isDiag(A_new, n, tol) && (count < maxIter))
 	{
-		copy(A_new, A_old, n);
-		QR_Decomposition(A_old, Q, R, n);
+		QR_Factorization(A_new, Q, R, H, n);
 		matrixMul(eigenVector, Q, eigenVector, n);
 		matrixMul(R, Q, A_new, n);
-		diff = getDifference(A_new, A_old, n);
 		count++;
 	}
 
@@ -189,22 +220,19 @@ void findEigenQR(double** A, double* eigenValue, double** eigenVector, int maxIt
 		eigenValue[i] = A_new[i][i];
 	}
 
-	//printf("%d 번 돌았어요!\n", count);
-	//printf("%lf 의 오차가 있어요\n\n", diff);
-
 	for (int i = 0; i < n; i++) {
-		delete[] A_old[i], A_new[i], Q[i], R[i];
+		delete[] A_new[i], Q[i], R[i], H[i];
 	}
 }
 
-//void qrDecompositionMain()
-void main()
+void qrDecompositionMain()
+//void main()
 {
 	DS_timer timer(2);
 	std::string name[2] = { "QR Decomposition", "Jacobi Method" };
 	timer.setTimerName(0, name[0]);
 	timer.setTimerName(1, name[1]);
-	int size = 500;
+	int size = 10;
 
 	double** A = new double*[size];
 	for (int i = 0; i < size; i++)
@@ -229,6 +257,33 @@ void main()
 		}
 	}
 
+	for (int i = 0; i < size; i++) {
+		double row_sum = 0;
+		for(int j = 0; j < size; j++)
+			row_sum += A[i][j];
+		A[i][i] = row_sum - A[i][i];
+		for (int j = 0; j < size; j++) {
+			if (i != j) {
+				A[i][j] *= -1;
+			}
+			//B(i, j) = A[i][j];
+		}
+	}
+
+
+	printf("[");
+	for (int i = 0; i < size - 1; i++) {
+		printf("[%lf, ", A[i][0]);
+		for (int j = 1; j < size - 1; j++) {
+			printf("%lf, ", A[i][j]);
+		}
+		printf("%lf],\n", A[i][size - 1]);
+	}
+	printf("[");
+	for (int j = 0; j < size - 1; j++)
+		printf("%lf, ", A[size - 1][j]);
+	printf("%lf]]\n\n", A[size - 1][size - 1]);
+
 	timer.onTimer(0);
 	findEigenQR(A, eigValQR, eigVecQR, 250, size);
 	timer.offTimer(0);
@@ -242,9 +297,12 @@ void main()
 	sort(eigValJacobi, size);
 
 	for (int i = 0; i < size; i++) {
+		/*
 		if (eigValQR[i] * eigValJacobi[i] < 0) {
 			printf("[%d]  %11.6lf  %11.6lf\n", i, eigValQR[i], eigValJacobi[i]);
 		}
+		*/
+		printf("[%d]  %11.6lf  %11.6lf\n", i, eigValQR[i], eigValJacobi[i]);
 	}
 	
 	timer.printTimer();

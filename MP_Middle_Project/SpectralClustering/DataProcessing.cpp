@@ -5,11 +5,13 @@
 using namespace std;
 
 
-void getData(FILE* fp, std::vector<Point>& points) {
+int getData(FILE* fp, std::vector<Point>& points) {
 	if (fp == NULL) {
 		printf("FILE NOT OPEN!\n");
 		return;
 	}
+
+    int lines = 0;
 
 	while (!feof(fp)) {
 		double x = 0;
@@ -17,7 +19,9 @@ void getData(FILE* fp, std::vector<Point>& points) {
 		
 		fscanf_s(fp, "%lf %lf", &x, &y);
 		points.push_back(Point(x, y));
+        lines++;
 	}
+    return lines;
 }
 
 void qr_algorithm(double** A, int n, double** Q, double** R) {

@@ -32,9 +32,9 @@ namespace jacobi_pd {
         int n;            //!< the size of the matrix
         Scalar** M;       //!< local copy of the matrix being analyzed
         // Precomputed cosine, sine, and tangent of the most recent rotation angle:
-        Scalar c;         //!< = cos(¥è)
-        Scalar s;         //!< = sin(¥è)
-        Scalar t;         //!< = tan(¥è),  (note |t|<=1)
+        Scalar c;         //!< = cos(ï¿½ï¿½)
+        Scalar s;         //!< = sin(ï¿½ï¿½)
+        Scalar t;         //!< = tan(ï¿½ï¿½),  (note |t|<=1)
         int* max_idx_row; //!< for row i, the index j of the maximum element where j>i
 
     public:
@@ -78,9 +78,9 @@ namespace jacobi_pd {
     private:
 
         /// @brief Calculate the components of a rotation matrix which performs a
-        ///        rotation in the i,j plane by an angle (¥è) causing M[i][j]=0.
+        ///        rotation in the i,j plane by an angle (ï¿½ï¿½) causing M[i][j]=0.
         ///        The resulting parameters will be stored in this->c, this->s, and
-        ///        this->t (which store cos(¥è), sin(¥è), and tan(¥è), respectively).
+        ///        this->t (which store cos(ï¿½ï¿½), sin(ï¿½ï¿½), and tan(ï¿½ï¿½), respectively).
         void CalcRot(Scalar const* const* M,   //!< matrix
             int i,      //!< row index
             int j);     //!< column index
@@ -201,10 +201,10 @@ namespace jacobi_pd {
 
 
     /// @brief Calculate the components of a rotation matrix which performs a
-    ///        rotation in the i,j plane by an angle (¥è) that (when multiplied on
+    ///        rotation in the i,j plane by an angle (ï¿½ï¿½) that (when multiplied on
     ///        both sides) will zero the ij'th element of M, so that afterwards
     ///        M[i][j] = 0.  The results will be stored in c, s, and t
-    ///        (which store cos(¥è), sin(¥è), and tan(¥è), respectively).
+    ///        (which store cos(ï¿½ï¿½), sin(ï¿½ï¿½), and tan(ï¿½ï¿½), respectively).
 
     template<typename Scalar, typename Vector, typename Matrix, typename ConstMatrix>
     void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
@@ -212,7 +212,7 @@ namespace jacobi_pd {
             int i,       // row index
             int j)       // column index
     {
-        t = 1.0; // = tan(¥è)
+        t = 1.0; // = tan(ï¿½ï¿½)
         Scalar M_jj_ii = (M[j][j] - M[i][i]);
         if (M_jj_ii != 0.0) {
             // kappa = (M[j][j] - M[i][i]) / (2*M[i][j])
@@ -236,7 +236,7 @@ namespace jacobi_pd {
     /// brief  Perform a similarity transformation by multiplying matrix M on both
     ///         sides by a rotation matrix (and its transpose) to eliminate M[i][j].
     /// details This rotation matrix performs a rotation in the i,j plane by
-    ///         angle ¥è.  This function assumes that c=cos(¥è). s=sin(¥è), t=tan(¥è)
+    ///         angle ï¿½ï¿½.  This function assumes that c=cos(ï¿½ï¿½). s=sin(ï¿½ï¿½), t=tan(ï¿½ï¿½)
     ///         have been calculated in advance (using the CalcRot() function).
     ///         It also assumes that i<j.  The max_idx_row[] array is also updated.
     ///         To save time, since the matrix is symmetric, the elements
@@ -265,7 +265,7 @@ namespace jacobi_pd {
     /// The components of M' are:
     ///
     /// verbatim
-    ///   M'_uv =  ¥Ò_w  ¥Ò_z   R_wu * M_wz * R_zv
+    ///   M'_uv =  ï¿½ï¿½_w  ï¿½ï¿½_z   R_wu * M_wz * R_zv
     /// endverbatim
     ///
     /// Note that a the rotation at location i,j will modify all of the matrix
@@ -305,9 +305,9 @@ namespace jacobi_pd {
             int j)     // column index
     {
         // Recall that:
-        // c = cos(¥è)
-        // s = sin(¥è)
-        // t = tan(¥è) (which should be <= 1.0)
+        // c = cos(ï¿½ï¿½)
+        // s = sin(ï¿½ï¿½)
+        // t = tan(ï¿½ï¿½) (which should be <= 1.0)
 
         // Compute the diagonal elements of M which have changed:
         M[i][i] -= t * M[i][j];
@@ -367,10 +367,10 @@ namespace jacobi_pd {
 
 
     ///@brief Multiply matrix M on the LEFT side by a transposed rotation matrix R^T
-    ///       This matrix performs a rotation in the i,j plane by angle ¥è  (where
-    ///       the arguments "s" and "c" refer to cos(¥è) and sin(¥è), respectively).
+    ///       This matrix performs a rotation in the i,j plane by angle ï¿½ï¿½  (where
+    ///       the arguments "s" and "c" refer to cos(ï¿½ï¿½) and sin(ï¿½ï¿½), respectively).
     /// @verbatim
-    ///   E'_uv = ¥Ò_w  R_wu * E_wv
+    ///   E'_uv = ï¿½ï¿½_w  R_wu * E_wv
     /// @endverbatim
 
     template<typename Scalar, typename Vector, typename Matrix, typename ConstMatrix>
@@ -379,7 +379,7 @@ namespace jacobi_pd {
             int i,     // row index
             int j)     // column index
     {
-        // Recall that c = cos(¥è) and s = sin(¥è)
+        // Recall that c = cos(ï¿½ï¿½) and s = sin(ï¿½ï¿½)
         for (int v = 0; v < n; v++) {
             Scalar Eiv = E[i][v]; //backup E[i][v]
             E[i][v] = c * E[i][v] - s * E[j][v];

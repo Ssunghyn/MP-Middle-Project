@@ -81,6 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -131,6 +132,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalIncludeDirectories>.\eigen-3.4.0</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +148,7 @@
     <ClCompile Include="LaplacianMatrix.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QRDecomposition.cpp" />
+    <ClCompile Include="QRDecompositionMulticore.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AffinityMatrix.h" />
@@ -156,6 +159,7 @@
     <ClInclude Include="LaplacianMatrix.h" />
     <ClInclude Include="matrix_alloc_jpd.hpp" />
     <ClInclude Include="QRDecomposition.h" />
+    <ClInclude Include="QRDecompositionMulticore.h" />
     <ClInclude Include="SpectralClustring.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
