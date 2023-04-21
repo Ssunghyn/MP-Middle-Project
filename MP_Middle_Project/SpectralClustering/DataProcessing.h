@@ -2,5 +2,5 @@
 #include "SpectralClustring.h"
 
 
-void getData(FILE* fp, Point* points);
+bool getData(FILE* fp, Point* points);
 void saveData(const char* fileName, double* points, int n);

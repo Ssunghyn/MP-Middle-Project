@@ -4,7 +4,7 @@
 using namespace std;
 
 
-void getData(FILE* fp, Point* points) {
+bool getData(FILE* fp, Point* points, int n) {
 	if (fp == NULL) {
 		printf("FILE NOT OPEN!\n");
 		return;
@@ -21,6 +21,11 @@ void getData(FILE* fp, Point* points) {
 	}
 
 	fclose(fp);
+
+	if (i == n)
+		return true;
+	else
+		return false;
 }
 
 void saveData(const char* fileName, double* points, int n) {

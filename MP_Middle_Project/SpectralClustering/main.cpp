@@ -150,15 +150,11 @@ int main(int argc, char** argv)
 	}
 
 	std::string saveName;
-	for (int i = 0; i < file_name.length(); i++)
+	for (int i = 0; i < 8; i++)
 	{
-		if (file_name[i] == '.' || i != 0) {
-			break;
-		}
-		saveName[i] = file_name[i];
+		file_name.pop_back();
 	}
-	saveName = saveName+".txt";
-	printf("%s", saveName);
+	saveName = file_name + "_result.txt";
 	saveData(saveName.c_str(), results, n);
 	timer.printTimer();
 
