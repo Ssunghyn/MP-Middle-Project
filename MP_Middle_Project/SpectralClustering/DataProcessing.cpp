@@ -65,7 +65,7 @@ void data_main()
 	fp = fopen(input_path, "r");
 	#endif
 	Point* points = new Point[n];
-	getData(fp, points);
+	getData(fp, points, n);
 	for (int i = 0; i < n; i++)
 		printf("%lf %lf\n", points[i].x, points[i].y);
 }
