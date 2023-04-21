@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import sys
+import os
+
+path = os.getcwd()
 
 
 def showData(file_name):
     fig, axes = plt.subplots(1, 2)
     i = 0
-    for name in file_name:
-        fname = ".\\SpectralClustering\\data\\" + name
+    for name in file_name[1:]:
+        fname = path + "\\data\\" + name
         X = []
         y = []
         labels = []
@@ -26,5 +29,5 @@ def showData(file_name):
 
 
 if __name__ == "__main__":
-    fname = ["moon_Multi Method1_result.txt", "moon_Single Method_result.txt"]
+    fname = sys.argv
     showData(fname)

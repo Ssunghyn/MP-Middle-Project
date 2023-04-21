@@ -81,8 +81,8 @@ void labelDecomposition(MatrixXd& eigenVectors, int* results, int n) {
 	labels[0] = dictionary[0].first;
 	labels[1] = dictionary[1].first;
 
-	printf("Size = %d\n", size);
-	printf("label 1 %lf\nlabel 2 %lf\n", labels[0], labels[1]);
+	//printf("Size = %d\n", size);
+	//printf("label 1 %lf\nlabel 2 %lf\n", labels[0], labels[1]);
 
 	for (int i = 0; i < n; i++) {
 		if (abs(eigenVectors(i, 1) - labels[0]) > abs(eigenVectors(i, 1) - labels[1])) {
@@ -218,6 +218,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+	std::string version[] = { "SingleMethod", "MultiMethod1", "MultiMethod2", "MultiMethod3", "MultiMethod4_1", "MultiMethod4_2" };
+
 	#pragma omp parallel for num_threads(2)
 	for (int tid = 0; tid < 2; tid++) {
 		int* results = new int[n];
@@ -244,7 +246,7 @@ int main(int argc, char** argv)
 		labelDecomposition(eigenVectors, results, n);
 		
 		std::string saveName;
-		saveName = file_name + name[tid] + "_result.txt";
+		saveName = file_name + version[tid] + "_result.txt";
 		saveData(saveName.c_str(), points, results, n);
 
 		delete[] results;
