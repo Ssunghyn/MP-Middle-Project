@@ -256,7 +256,7 @@ int main()
     float point_y[TEST_DATA_COUNT];
     float* result = new float[TEST_DATA_COUNT * TEST_DATA_COUNT];
     float* result_cuda = new float[TEST_DATA_COUNT * TEST_DATA_COUNT];
-    float* d_result;
+    float* d_result = NULL;
 
 
 #if PRINT_RESULT
